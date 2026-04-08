@@ -1,11 +1,12 @@
 package com.dashboard.app.user.controller;
 
+import com.dashboard.app.user.dto.UserLoginReqDto;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.RequiredArgsConstructor;
 
-import com.dashboard.app.user.dto.UserDto;
-import com.dashboard.app.user.domain.UserDomain;
+import com.dashboard.app.user.dto.UserLoginResDto;
+import com.dashboard.app.user.dto.UserCreateReqDto;
 import com.dashboard.app.user.service.UserService;
 
 @RestController
@@ -17,15 +18,15 @@ public class UserController {
 
     // ✅ 회원가입
     @PostMapping("/signup")
-    public String signup(@RequestBody UserDto dto) {
+    public String signup(@RequestBody UserCreateReqDto dto) {
         userService.signup(dto);
         return "회원가입 성공";
     }
 
     // ✅ 로그인
     @PostMapping("/login")
-    public UserDomain login(@RequestParam String id,
-                            @RequestParam String password) {
-        return userService.login(id, password);
+    public UserLoginResDto login(@RequestBody UserLoginReqDto dto) {
+        String token = userService.login(dto.getId(), dto.getPassword());
+        return new UserLoginResDto(token);
     }
 }

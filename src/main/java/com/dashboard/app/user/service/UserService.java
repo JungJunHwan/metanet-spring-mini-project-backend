@@ -4,8 +4,9 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 
+import com.dashboard.app.global.security.JwtUtil;
 import com.dashboard.app.user.domain.UserDomain;
-import com.dashboard.app.user.dto.UserDto;
+import com.dashboard.app.user.dto.UserCreateReqDto;
 import com.dashboard.app.user.repository.UserRepository;
 
 @Service
@@ -13,9 +14,10 @@ import com.dashboard.app.user.repository.UserRepository;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
 
     // ✅ 회원가입
-    public void signup(UserDto dto) {
+    public void signup(UserCreateReqDto dto) {
 
         // 1. 중복 체크
         userRepository.findByEmail(dto.getEmail())
@@ -40,7 +42,7 @@ public class UserService {
     }
 
     // ✅ 로그인
-    public UserDomain login(String loginId, String password) {
+    public String login(String loginId, String password) {
 
         UserDomain user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new RuntimeException("아이디 없음"));
@@ -53,6 +55,6 @@ public class UserService {
             throw new RuntimeException("탈퇴한 회원");
         }
 
-        return user;
+        return jwtUtil.createToken(user.getLoginId());
     }
 }
