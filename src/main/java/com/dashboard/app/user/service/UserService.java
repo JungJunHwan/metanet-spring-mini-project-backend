@@ -1,8 +1,7 @@
 package com.dashboard.app.user.service;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import lombok.RequiredArgsConstructor;
 
 import com.dashboard.app.global.security.JwtUtil;
 import com.dashboard.app.user.domain.UserDomain;
@@ -12,12 +11,15 @@ import com.dashboard.app.user.dto.UserUpdateReqDto;
 import com.dashboard.app.user.repository.UserRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     // ✅ 회원가입
     public void signup(UserCreateReqDto dto) {
@@ -32,7 +34,7 @@ public class UserService {
         UserDomain user = new UserDomain();
         user.setName(dto.getName());
         user.setLoginId(dto.getLoginId());
-        user.setPassword(dto.getPassword());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setEmail(dto.getEmail());
         user.setPhone(dto.getPhone());
         user.setBirth(dto.getBirth());
@@ -50,7 +52,7 @@ public class UserService {
         UserDomain user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new RuntimeException("아이디 없음"));
 
-        if (!user.getPassword().equals(password)) {
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("비밀번호 틀림");
         }
 

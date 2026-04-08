@@ -46,4 +46,55 @@ public class BikeService {
             return map;
         }).toList();
     }
+
+    public List<Map<String, Object>> getStationTurnover() {
+        List<Object[]> results = bikeRepository.findStationTurnover();
+        return results.stream().map(result -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("rentTypeCode", result[0]);
+            map.put("usageCount", result[1]);
+            return map;
+        }).toList();
+    }
+
+    public List<Map<String, Object>> getTimeAndDistance() {
+        List<Object[]> results = bikeRepository.findTimeAndDistance();
+        return results.stream().map(result -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("useTime", result[0]);
+            map.put("totalDistance", result[1]);
+            return map;
+        }).toList();
+    }
+
+    public List<Map<String, Object>> getUserDemographics() {
+        List<Object[]> results = bikeRepository.findUserDemographics();
+        return results.stream().map(result -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("ageGroup", result[0]);
+            map.put("gender", result[1]);
+            map.put("usageCount", result[2]);
+            return map;
+        }).toList();
+    }
+
+    public List<Map<String, Object>> getTimeDistribution() {
+        List<Object[]> results = bikeRepository.findTimeDistribution();
+        return results.stream().map(result -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("rentHour", result[0]);
+            map.put("usageCount", result[1]);
+            return map;
+        }).toList();
+    }
+
+    public List<Map<String, Object>> getDailyTrend() {
+        List<Object[]> results = bikeRepository.findDailyTrend();
+        return results.stream().map(result -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("rentDay", result[0]);
+            map.put("usageCount", result[1]);
+            return map;
+        }).toList();
+    }
 }
