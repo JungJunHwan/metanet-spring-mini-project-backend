@@ -1,0 +1,39 @@
+package com.dashboard.app.bike.controller;
+
+import com.dashboard.app.bike.service.BikeService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/bike/stats")
+@RequiredArgsConstructor
+public class BikeController {
+    private final BikeService bikeService;
+
+    @GetMapping("/total-usage")
+    public ResponseEntity<?> getTotalUsageCount() {
+        Long totalCount = bikeService.getTotalUsageCount();
+        return ResponseEntity.ok(totalCount);
+    }
+
+    @GetMapping("/total-carbon")
+    public ResponseEntity<Double> getTotalCarbon() {
+        return ResponseEntity.ok(bikeService.getTotalCarbonSavings());
+    }
+
+    @GetMapping("/top-stations")
+    public ResponseEntity<List<Map<String, Object>>> getTopStations() {
+        return ResponseEntity.ok(bikeService.getTop10Stations());
+    }
+
+    @GetMapping("/all-stations")
+    public ResponseEntity<List<Map<String, Object>>> getAllStations() {
+        return ResponseEntity.ok(bikeService.getAllStationUsage());
+    }
+}
