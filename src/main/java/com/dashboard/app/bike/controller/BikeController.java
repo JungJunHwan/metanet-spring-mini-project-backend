@@ -36,4 +36,29 @@ public class BikeController {
     public ResponseEntity<List<Map<String, Object>>> getAllStations() {
         return ResponseEntity.ok(bikeService.getAllStationUsage());
     }
+
+    @GetMapping("/turnover")
+    public ResponseEntity<List<Map<String, Object>>> getStationTurnover() {
+        return ResponseEntity.ok(bikeService.getStationTurnover());
+    }
+
+    @GetMapping("/time-distance")
+    public ResponseEntity<List<Map<String, Object>>> getTimeAndDistance() {
+        return ResponseEntity.ok(bikeService.getTimeAndDistance());
+    }
+
+    @GetMapping("/demographics")
+    public ResponseEntity<List<Map<String, Object>>> getUserDemographics() {
+        return ResponseEntity.ok(bikeService.getUserDemographics());
+    }
+
+    @GetMapping("/time-distribution")
+    public ResponseEntity<List<Map<String, Object>>> getTimeDistribution() {
+        return ResponseEntity.ok(bikeService.getTimeDistribution());
+    }
+
+    @GetMapping("/daily-trend")
+    public ResponseEntity<List<Map<String, Object>>> getDailyTrend() {
+        return ResponseEntity.ok(bikeService.getDailyTrend());
+    }
 }

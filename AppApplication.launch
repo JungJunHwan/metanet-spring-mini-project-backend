@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.springframework.ide.eclipse.boot.launch.BootLaunchConfigurationDelegate">
+    <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+        <listEntry value="/app/src/main/java/com/dashboard/app/AppApplication.java"/>
+    </listAttribute>
+    <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+        <listEntry value="1"/>
+    </listAttribute>
+    <listAttribute key="org.eclipse.debug.ui.favoriteGroups">
+        <listEntry value="org.eclipse.debug.ui.launchGroup.run"/>
+        <listEntry value="org.eclipse.debug.ui.launchGroup.debug"/>
+    </listAttribute>
+    <stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17/"/>
+    <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="com.dashboard.app.AppApplication"/>
+    <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="app"/>
+    <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xmx512m -Dspring.output.ansi.enabled=ALWAYS"/>
+    <booleanAttribute key="org.springframework.ide.eclipse.boot.launch.enable-debug-output" value="false"/>
+    <booleanAttribute key="org.springframework.ide.eclipse.boot.launch.livebean.enable" value="true"/>
+    <intAttribute key="org.springframework.ide.eclipse.boot.launch.livebean.port" value="0"/>
+    <stringAttribute key="org.springframework.ide.eclipse.boot.launch.profile" value=""/>
+    <booleanAttribute key="org.springframework.ide.eclipse.boot.launch.terminate-children" value="true"/>
+</launchConfiguration>

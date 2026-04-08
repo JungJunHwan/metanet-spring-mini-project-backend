@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gradlew.bat cleanEclipse eclipse)",
+      "Bash(cmd.exe /c \"gradlew.bat cleanEclipse eclipse\")",
+      "Bash(powershell.exe:*)",
+      "Bash(./gradlew cleanEclipse:*)",
+      "Bash(./gradlew build:*)",
+      "Bash(ls /c/dev/springboot-workspace/metanet-spring-mini-project/README*)"
+    ]
+  }
+}
