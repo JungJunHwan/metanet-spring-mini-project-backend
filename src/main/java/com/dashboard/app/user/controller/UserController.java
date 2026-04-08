@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 
 import com.dashboard.app.user.dto.UserLoginResDto;
 import com.dashboard.app.user.dto.UserCreateReqDto;
+import com.dashboard.app.user.dto.UserResDto;
+import com.dashboard.app.user.dto.UserUpdateReqDto;
 import com.dashboard.app.user.service.UserService;
 
 @RestController
@@ -28,5 +30,21 @@ public class UserController {
     public UserLoginResDto login(@RequestBody UserLoginReqDto dto) {
         String token = userService.login(dto.getId(), dto.getPassword());
         return new UserLoginResDto(token);
+    }
+
+    @GetMapping("/{userId}")
+    public UserResDto getUser(@PathVariable Long userId) {
+        return userService.getUser(userId);
+    }
+
+    @PatchMapping("/{userId}")
+    public UserResDto updateUser(@PathVariable Long userId, @RequestBody UserUpdateReqDto dto) {
+        return userService.updateUser(userId, dto);
+    }
+
+    @DeleteMapping("/{userId}")
+    public String deleteUser(@PathVariable Long userId) {
+        userService.deleteUser(userId);
+        return "회원 탈퇴 완료";
     }
 }

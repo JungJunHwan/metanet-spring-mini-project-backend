@@ -7,7 +7,10 @@ import lombok.RequiredArgsConstructor;
 import com.dashboard.app.global.security.JwtUtil;
 import com.dashboard.app.user.domain.UserDomain;
 import com.dashboard.app.user.dto.UserCreateReqDto;
+import com.dashboard.app.user.dto.UserResDto;
+import com.dashboard.app.user.dto.UserUpdateReqDto;
 import com.dashboard.app.user.repository.UserRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -56,5 +59,53 @@ public class UserService {
         }
 
         return jwtUtil.createToken(user.getLoginId());
+    }
+
+    public UserResDto getUser(Long userId) {
+        UserDomain user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        if (user.getStatus() == 'Y') {
+            throw new RuntimeException("탈퇴한 회원입니다.");
+        }
+
+        return new UserResDto(user);
+    }
+
+    @Transactional
+    public UserResDto updateUser(Long userId, UserUpdateReqDto dto) {
+        UserDomain user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        if (user.getStatus() == 'Y') {
+            throw new RuntimeException("탈퇴한 회원입니다.");
+        }
+
+        if (dto.getPassword() != null && !dto.getPassword().trim().isEmpty()) {
+            user.setPassword(dto.getPassword());
+        }
+        if (dto.getEmail() != null && !dto.getEmail().trim().isEmpty()) {
+            user.setEmail(dto.getEmail());
+        }
+        if (dto.getPhone() != null && !dto.getPhone().trim().isEmpty()) {
+            user.setPhone(dto.getPhone());
+        }
+        if (dto.getProfileImage() != null && !dto.getProfileImage().trim().isEmpty()) {
+            user.setProfileImage(dto.getProfileImage());
+        }
+
+        return new UserResDto(user);
+    }
+
+    @Transactional
+    public void deleteUser(Long userId) {
+        UserDomain user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        if (user.getStatus() == 'Y') {
+            throw new RuntimeException("이미 탈퇴한 회원입니다.");
+        }
+
+        user.setStatus('Y');
     }
 }
