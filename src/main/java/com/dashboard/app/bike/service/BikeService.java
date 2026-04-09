@@ -102,6 +102,17 @@ public class BikeService {
         }).toList();
     }
 
+    // Task 2: 프론트엔드 지도용 — 평탄화된 List 반환
+    public List<Map<String, Object>> getDistrictUsage() {
+        List<Object[]> results = bikeRepository.findUsageByDistrict();
+        return results.stream().map(result -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("district", result[0]);
+            map.put("usageCount", result[1]);
+            return map;
+        }).toList();
+    }
+
     @Cacheable(value = "bikeStats", key = "'usageByDistrict'")
     public DistrictUsageResponse getUsageByDistrict() {
         log.info("🚀 [Cache Miss] DB에서 자치구별 통계를 직접 조회합니다.");
