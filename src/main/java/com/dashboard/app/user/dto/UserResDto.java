@@ -14,7 +14,7 @@ public class UserResDto {
     private String phone;
     private Date birth;
     private char gender;
-    private String profileImageUrl;
+    private String profileImage;
     private Date signDate;
 
     public UserResDto(User user) {
@@ -26,7 +26,7 @@ public class UserResDto {
         this.birth = user.getBirth();
         this.gender = user.getGender();
         if (user.getProfileImage() != null && user.getProfileImage().length > 0) {
-            this.profileImageUrl = "/bike/users/" + user.getUserId() + "/profile-image";
+            this.profileImage = "/bike/users/" + user.getUserId() + "/profile-image";
         }
         this.signDate = user.getSignDate();
     }
