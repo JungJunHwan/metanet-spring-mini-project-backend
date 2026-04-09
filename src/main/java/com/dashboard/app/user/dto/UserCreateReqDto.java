@@ -2,6 +2,8 @@ package com.dashboard.app.user.dto;
 
 import java.util.Date;
 
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.multipart.MultipartFile;
 import lombok.Data;
 
 @Data
@@ -11,8 +13,9 @@ public class UserCreateReqDto {
     private String password;
     private String email;
     private String phone;
+    @DateTimeFormat(pattern = "yyyy/MM/dd")
     private Date birth;
     private char gender;
-    private String profileImage;
+    private MultipartFile profileImage;
 
 }

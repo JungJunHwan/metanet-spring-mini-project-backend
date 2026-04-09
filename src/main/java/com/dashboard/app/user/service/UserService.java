@@ -4,7 +4,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.dashboard.app.global.security.JwtUtil;
-import com.dashboard.app.user.domain.UserDomain;
+import com.dashboard.app.user.domain.User;
 import com.dashboard.app.user.dto.UserCreateReqDto;
 import com.dashboard.app.user.dto.UserResDto;
 import com.dashboard.app.user.dto.UserUpdateReqDto;
@@ -31,7 +31,7 @@ public class UserService {
                 });
 
         // 2. DTO → Domain 변환
-        UserDomain user = new UserDomain();
+        User user = new User();
         user.setName(dto.getName());
         user.setLoginId(dto.getLoginId());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
@@ -39,7 +39,13 @@ public class UserService {
         user.setPhone(dto.getPhone());
         user.setBirth(dto.getBirth());
         user.setGender(dto.getGender());
-        user.setProfileImage(dto.getProfileImage());
+        try {
+            if (dto.getProfileImage() != null && !dto.getProfileImage().isEmpty()) {
+                user.setProfileImage(dto.getProfileImage().getBytes());
+            }
+        } catch (java.io.IOException e) {
+            throw new RuntimeException("프로필 이미지 처리 중 오류 발생", e);
+        }
         user.setStatus('N'); // 기본값
 
         // 3. 저장
@@ -49,7 +55,7 @@ public class UserService {
     // ✅ 로그인
     public String login(String loginId, String password) {
 
-        UserDomain user = userRepository.findByLoginId(loginId)
+        User user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new RuntimeException("아이디 없음"));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
@@ -64,7 +70,7 @@ public class UserService {
     }
 
     public UserResDto getUser(Long userId) {
-        UserDomain user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
         if (user.getStatus() == 'Y') {
@@ -76,7 +82,7 @@ public class UserService {
 
     @Transactional
     public UserResDto updateUser(Long userId, UserUpdateReqDto dto) {
-        UserDomain user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
         if (user.getStatus() == 'Y') {
@@ -92,16 +98,30 @@ public class UserService {
         if (dto.getPhone() != null && !dto.getPhone().trim().isEmpty()) {
             user.setPhone(dto.getPhone());
         }
-        if (dto.getProfileImage() != null && !dto.getProfileImage().trim().isEmpty()) {
-            user.setProfileImage(dto.getProfileImage());
+        try {
+            if (dto.getProfileImage() != null && !dto.getProfileImage().isEmpty()) {
+                user.setProfileImage(dto.getProfileImage().getBytes());
+            }
+        } catch (java.io.IOException e) {
+            throw new RuntimeException("프로필 이미지 처리 중 오류 발생", e);
         }
 
         return new UserResDto(user);
     }
 
+    @Transactional(readOnly = true)
+    public byte[] getUserProfileImage(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        if (user.getStatus() == 'Y') {
+            throw new RuntimeException("탈퇴한 회원입니다.");
+        }
+        return user.getProfileImage();
+    }
+
     @Transactional
     public void deleteUser(Long userId) {
-        UserDomain user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
         if (user.getStatus() == 'Y') {
