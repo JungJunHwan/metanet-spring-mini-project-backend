@@ -1,6 +1,7 @@
 package com.dashboard.app.user.controller;
 
 import com.dashboard.app.user.dto.UserLoginReqDto;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ public class UserController {
 
     // ✅ 회원가입
     @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String signup(@ModelAttribute UserCreateReqDto dto) {
+    public String signup(@Valid @ModelAttribute UserCreateReqDto dto) {
         userService.signup(dto);
         return "회원가입 성공";
     }

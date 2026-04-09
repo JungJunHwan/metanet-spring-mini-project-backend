@@ -34,4 +34,11 @@ public class User {
     @Column(length = 1)
     private char status; // 탈퇴 여부
 
+    // 회원가입 시 가입일을 자동으로 현재 날짜로 설정
+    @PrePersist
+    protected void onCreate() {
+        if (this.signDate == null) {
+            this.signDate = new Date();
+        }
+    }
 }

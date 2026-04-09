@@ -15,7 +15,7 @@ public class UserResDto {
     private Date birth;
     private char gender;
     private String profileImage;
-    private Date signDate;
+    private Date joinDate;   // DB 컬럼: signDate → 프론트 노출명: joinDate
 
     public UserResDto(User user) {
         this.userId = user.getUserId();
@@ -28,6 +28,6 @@ public class UserResDto {
         if (user.getProfileImage() != null && user.getProfileImage().length > 0) {
             this.profileImage = "/bike/users/" + user.getUserId() + "/profile-image";
         }
-        this.signDate = user.getSignDate();
+        this.joinDate = user.getSignDate();
     }
 }
