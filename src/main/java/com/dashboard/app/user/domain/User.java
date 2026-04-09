@@ -14,7 +14,11 @@ public class User {
     private Long userId;
 
     private String name;
+
+    // ★ 아이디는 시스템 전체에서 유일해야 하므로 UNIQUE + NOT NULL 제약
+    @Column(unique = true, nullable = false)
     private String loginId;
+
     private String password;
     private String email;
     private String phone;

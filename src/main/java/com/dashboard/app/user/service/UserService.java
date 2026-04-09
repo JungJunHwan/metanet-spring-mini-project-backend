@@ -25,10 +25,15 @@ public class UserService {
     // ✅ 회원가입
     public void signup(UserCreateReqDto dto) {
 
-        // 1. 중복 체크
-        userRepository.findByEmail(dto.getEmail())
+        // 1-a. 아이디 입력값 검증 (null/공백 시 의미 없는 레코드가 DB에 쌓이는 것 방지)
+        if (dto.getLoginId() == null || dto.getLoginId().trim().isEmpty()) {
+            throw new IllegalArgumentException("아이디를 입력해주세요.");
+        }
+
+        // 1-b. 아이디 중복 체크 (이메일이 아닌 loginId 기준 — UNIQUE 제약과 일치)
+        userRepository.findByLoginId(dto.getLoginId())
                 .ifPresent(u -> {
-                    throw new RuntimeException("이미 존재하는 이메일입니다.");
+                    throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
                 });
 
         // 2. DTO → Domain 변환
