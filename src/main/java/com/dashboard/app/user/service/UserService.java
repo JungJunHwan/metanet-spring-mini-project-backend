@@ -97,6 +97,9 @@ public class UserService {
             throw new RuntimeException("탈퇴한 회원입니다.");
         }
 
+        if (dto.getName() != null && !dto.getName().trim().isEmpty()) {
+            user.setName(dto.getName());
+        }
         if (dto.getPassword() != null && !dto.getPassword().trim().isEmpty()) {
             user.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
@@ -105,6 +108,12 @@ public class UserService {
         }
         if (dto.getPhone() != null && !dto.getPhone().trim().isEmpty()) {
             user.setPhone(dto.getPhone());
+        }
+        if (dto.getBirth() != null) {
+            user.setBirth(dto.getBirth());
+        }
+        if (dto.getGender() != null && !dto.getGender().trim().isEmpty()) {
+            user.setGender(dto.getGender().charAt(0));
         }
         try {
             if (dto.getProfileImage() != null && !dto.getProfileImage().isEmpty()) {
