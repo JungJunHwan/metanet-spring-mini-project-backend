@@ -63,14 +63,8 @@ public class BikeController {
         return ResponseEntity.ok(bikeService.getDailyTrend());
     }
 
-    // Task 2: 프론트엔드 지도용 — 평탄화된 List 반환 (SeoulMap 컬러링)
     @GetMapping("/district-usage")
-    public ResponseEntity<List<Map<String, Object>>> getDistrictUsage() {
-        return ResponseEntity.ok(bikeService.getDistrictUsage());
-    }
-
-    @GetMapping("/usage-by-district")
-    public ResponseEntity<DistrictUsageResponse> getUsageByDistrict() {
+    public ResponseEntity<List<Map<String, Object>>> getUsageByDistrict() {
         return ResponseEntity.ok(bikeService.getUsageByDistrict());
     }
 }
