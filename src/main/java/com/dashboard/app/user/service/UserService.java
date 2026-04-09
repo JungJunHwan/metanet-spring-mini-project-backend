@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import com.dashboard.app.global.security.JwtUtil;
 import com.dashboard.app.user.domain.User;
 import com.dashboard.app.user.dto.UserCreateReqDto;
+import com.dashboard.app.user.dto.UserLoginResDto;
 import com.dashboard.app.user.dto.UserResDto;
 import com.dashboard.app.user.dto.UserUpdateReqDto;
 import com.dashboard.app.user.repository.UserRepository;
@@ -53,7 +54,7 @@ public class UserService {
     }
 
     // ✅ 로그인
-    public String login(String loginId, String password) {
+    public UserLoginResDto login(String loginId, String password) {
 
         User user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new RuntimeException("아이디 없음"));
@@ -66,7 +67,8 @@ public class UserService {
             throw new RuntimeException("탈퇴한 회원");
         }
 
-        return jwtUtil.createToken(user.getLoginId());
+        String token = jwtUtil.createToken(user.getLoginId());
+        return new UserLoginResDto(token, user.getUserId(), user.getLoginId());
     }
 
     @Transactional(readOnly = true)
@@ -91,7 +93,7 @@ public class UserService {
         }
 
         if (dto.getPassword() != null && !dto.getPassword().trim().isEmpty()) {
-            user.setPassword(dto.getPassword());
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
         if (dto.getEmail() != null && !dto.getEmail().trim().isEmpty()) {
             user.setEmail(dto.getEmail());

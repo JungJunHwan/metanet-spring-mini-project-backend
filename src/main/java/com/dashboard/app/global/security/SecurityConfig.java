@@ -43,7 +43,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // HTTP 요청에 대한 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/bike/users/signup", "/bike/users/login", "/error").permitAll()
+                        .requestMatchers("/bike/users/signup", "/bike/users/login", "/bike/stats/**", "/connect", "/error").permitAll()
                         .anyRequest().authenticated()
                 )
                 // 모든 요청 전에 JWT 필터 적용

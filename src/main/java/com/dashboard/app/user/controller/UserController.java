@@ -17,7 +17,7 @@ import org.springframework.http.ResponseEntity;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("bike/users")
+@RequestMapping("/bike/users")
 public class UserController {
 
     private final UserService userService;
@@ -32,8 +32,7 @@ public class UserController {
     // ✅ 로그인
     @PostMapping("/login")
     public UserLoginResDto login(@RequestBody UserLoginReqDto dto) {
-        String token = userService.login(dto.getId(), dto.getPassword());
-        return new UserLoginResDto(token);
+        return userService.login(dto.getLoginId(), dto.getPassword());
     }
 
     @GetMapping("/{userId}")
