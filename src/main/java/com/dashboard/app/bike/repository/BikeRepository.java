@@ -15,9 +15,10 @@ public interface BikeRepository extends JpaRepository<Bike, Long> {
     @Query("SELECT SUM(b.carbonAmount) FROM Bike b")
     Double sumTotalCarbonAmount();
 
-    @Query("SELECT b.stationName, SUM(b.useCount) as totalUsage " +
-            "FROM Bike b " +
-            "GROUP BY b.stationName " +
+    // 기존 방식보다 조인을 활용하여 ID로 그룹화하는 것이 성능에 유리할 수 있습니다.
+    @Query("SELECT s.stationName, SUM(b.useCount) as totalUsage " +
+            "FROM Bike b JOIN Station s ON b.stationId = s.stationId " +
+            "GROUP BY b.stationId, s.stationName " +
             "ORDER BY totalUsage DESC")
     List<Object[]> findTop10Stations(Pageable pageable);
 

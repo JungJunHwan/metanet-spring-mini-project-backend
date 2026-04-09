@@ -102,7 +102,7 @@ public class BikeService {
         }).toList();
     }
 
-    @Cacheable(value = "bikeStats", key = "'usageByDistrict_v2'")
+    @Cacheable(value = "bikeStats", key = "'usageByDistrict'")
     public List<Map<String, Object>> getUsageByDistrict() {
         log.info("🚀 [Cache Miss] DB에서 자치구별 통계를 직접 조회합니다.");
         List<Object[]> results = bikeRepository.findUsageByDistrict();
