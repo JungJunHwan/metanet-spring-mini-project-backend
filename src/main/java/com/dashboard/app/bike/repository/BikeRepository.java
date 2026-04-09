@@ -52,4 +52,11 @@ public interface BikeRepository extends JpaRepository<Bike, Long> {
             "GROUP BY FUNCTION('TO_CHAR', b.rentDate, 'YYYY-MM-DD') " +
             "ORDER BY rentDay")
     List<Object[]> findDailyTrend();
+
+    // 자치구별 통계 (Station 조인)
+    @Query("SELECT s.district, SUM(b.useCount) as totalUsage " +
+           "FROM Bike b JOIN Station s ON b.stationId = s.stationId " +
+           "GROUP BY s.district " +
+           "ORDER BY totalUsage DESC")
+    List<Object[]> findUsageByDistrict();
 }

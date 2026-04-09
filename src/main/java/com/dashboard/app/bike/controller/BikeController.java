@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.dashboard.app.bike.dto.DistrictUsageResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -60,5 +61,10 @@ public class BikeController {
     @GetMapping("/daily-trend")
     public ResponseEntity<List<Map<String, Object>>> getDailyTrend() {
         return ResponseEntity.ok(bikeService.getDailyTrend());
+    }
+
+    @GetMapping("/usage-by-district")
+    public ResponseEntity<DistrictUsageResponse> getUsageByDistrict() {
+        return ResponseEntity.ok(bikeService.getUsageByDistrict());
     }
 }

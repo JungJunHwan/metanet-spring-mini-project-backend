@@ -1,6 +1,6 @@
 package com.dashboard.app.user.dto;
 
-import com.dashboard.app.user.domain.UserDomain;
+import com.dashboard.app.user.domain.User;
 import lombok.Data;
 
 import java.util.Date;
@@ -17,7 +17,7 @@ public class UserResDto {
     private String profileImage;
     private Date signDate;
 
-    public UserResDto(UserDomain user) {
+    public UserResDto(User user) {
         this.userId = user.getUserId();
         this.name = user.getName();
         this.loginId = user.getLoginId();
@@ -25,7 +25,9 @@ public class UserResDto {
         this.phone = user.getPhone();
         this.birth = user.getBirth();
         this.gender = user.getGender();
-        this.profileImage = user.getProfileImage();
+        if (user.getProfileImage() != null && user.getProfileImage().length > 0) {
+            this.profileImage = "/bike/users/" + user.getUserId() + "/profile-image";
+        }
         this.signDate = user.getSignDate();
     }
 }

@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  oracle:
+    image: junan99/oracle21c
+    container_name: oracle
+    ports:
+      - "1521:1521"
+    environment:
+      - ORACLE_PASSWORD=oracle
+    restart: unless-stopped
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped

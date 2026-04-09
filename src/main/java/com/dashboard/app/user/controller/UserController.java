@@ -10,6 +10,10 @@ import com.dashboard.app.user.dto.UserCreateReqDto;
 import com.dashboard.app.user.dto.UserResDto;
 import com.dashboard.app.user.dto.UserUpdateReqDto;
 import com.dashboard.app.user.service.UserService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,8 +23,8 @@ public class UserController {
     private final UserService userService;
 
     // ✅ 회원가입
-    @PostMapping("/signup")
-    public String signup(@RequestBody UserCreateReqDto dto) {
+    @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String signup(@ModelAttribute UserCreateReqDto dto) {
         userService.signup(dto);
         return "회원가입 성공";
     }
@@ -36,9 +40,20 @@ public class UserController {
         return userService.getUser(userId);
     }
 
-    @PatchMapping("/{userId}")
-    public UserResDto updateUser(@PathVariable Long userId, @RequestBody UserUpdateReqDto dto) {
+    @PatchMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public UserResDto updateUser(@PathVariable Long userId, @ModelAttribute UserUpdateReqDto dto) {
         return userService.updateUser(userId, dto);
+    }
+
+    @GetMapping("/{userId}/profile-image")
+    public ResponseEntity<byte[]> getProfileImage(@PathVariable Long userId) {
+        byte[] image = userService.getUserProfileImage(userId);
+        if (image == null || image.length == 0) {
+            return ResponseEntity.notFound().build();
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_JPEG); 
+        return new ResponseEntity<>(image, headers, HttpStatus.OK);
     }
 
     @DeleteMapping("/{userId}")

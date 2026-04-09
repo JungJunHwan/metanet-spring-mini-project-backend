@@ -1,14 +1,18 @@
 package com.dashboard.app.bike.service;
 
 import com.dashboard.app.bike.repository.BikeRepository;
+import com.dashboard.app.bike.dto.DistrictUsageResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BikeService {
@@ -96,5 +100,18 @@ public class BikeService {
             map.put("usageCount", result[1]);
             return map;
         }).toList();
+    }
+
+    @Cacheable(value = "bikeStats", key = "'usageByDistrict'")
+    public DistrictUsageResponse getUsageByDistrict() {
+        log.info("🚀 [Cache Miss] DB에서 자치구별 통계를 직접 조회합니다.");
+        List<Object[]> results = bikeRepository.findUsageByDistrict();
+        List<Map<String, Object>> data = results.stream().map(result -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("district", result[0]);
+            map.put("usageCount", result[1]);
+            return map;
+        }).toList();
+        return new DistrictUsageResponse(data);
     }
 }
