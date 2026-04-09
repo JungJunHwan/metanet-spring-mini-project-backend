@@ -63,8 +63,8 @@ public class BikeController {
         return ResponseEntity.ok(bikeService.getDailyTrend());
     }
 
-    @GetMapping("/usage-by-district")
-    public ResponseEntity<DistrictUsageResponse> getUsageByDistrict() {
+    @GetMapping("/district-usage")
+    public ResponseEntity<List<Map<String, Object>>> getUsageByDistrict() {
         return ResponseEntity.ok(bikeService.getUsageByDistrict());
     }
 }

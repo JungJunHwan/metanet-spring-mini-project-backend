@@ -102,8 +102,8 @@ public class BikeService {
         }).toList();
     }
 
-    @Cacheable(value = "bikeStats", key = "'usageByDistrict'")
-    public DistrictUsageResponse getUsageByDistrict() {
+    @Cacheable(value = "bikeStats", key = "'usageByDistrict_v2'")
+    public List<Map<String, Object>> getUsageByDistrict() {
         log.info("🚀 [Cache Miss] DB에서 자치구별 통계를 직접 조회합니다.");
         List<Object[]> results = bikeRepository.findUsageByDistrict();
         List<Map<String, Object>> data = results.stream().map(result -> {
@@ -112,6 +112,6 @@ public class BikeService {
             map.put("usageCount", result[1]);
             return map;
         }).toList();
-        return new DistrictUsageResponse(data);
+        return data;
     }
 }
