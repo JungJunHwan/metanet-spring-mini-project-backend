@@ -3,6 +3,7 @@ package com.dashboard.app.user.dto;
 import com.dashboard.app.user.domain.User;
 import lombok.Data;
 
+import java.util.Base64;
 import java.util.Date;
 
 @Data
@@ -25,8 +26,11 @@ public class UserResDto {
         this.phone = user.getPhone();
         this.birth = user.getBirth();
         this.gender = user.getGender();
+        // byte[] → Base64 Data URI 변환: <img src="data:image/jpeg;base64,..."> 형태로
+        // JWT 인증 없이 브라우저가 직접 렌더링 가능
         if (user.getProfileImage() != null && user.getProfileImage().length > 0) {
-            this.profileImage = "/bike/users/" + user.getUserId() + "/profile-image";
+            this.profileImage = "data:image/jpeg;base64,"
+                    + Base64.getEncoder().encodeToString(user.getProfileImage());
         }
         this.joinDate = user.getSignDate();
     }
