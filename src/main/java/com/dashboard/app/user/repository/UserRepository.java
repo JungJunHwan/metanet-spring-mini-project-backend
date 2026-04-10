@@ -4,11 +4,11 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.dashboard.app.user.domain.UserDomain;
+import com.dashboard.app.user.domain.User;
 
-public interface UserRepository extends JpaRepository<UserDomain, Long> {
+public interface UserRepository extends JpaRepository<User, Long> {
 
-    Optional<UserDomain> findByLoginId(String loginId); // 로그인용
+    Optional<User> findByLoginId(String loginId); // 로그인용
 
-    Optional<UserDomain> findByEmail(String email); // 중복 체크
+    Optional<User> findByEmail(String email); // 중복 체크
 }

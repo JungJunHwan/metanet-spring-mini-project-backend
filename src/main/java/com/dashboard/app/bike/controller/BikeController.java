@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.dashboard.app.bike.dto.DistrictUsageResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -35,5 +36,35 @@ public class BikeController {
     @GetMapping("/all-stations")
     public ResponseEntity<List<Map<String, Object>>> getAllStations() {
         return ResponseEntity.ok(bikeService.getAllStationUsage());
+    }
+
+    @GetMapping("/turnover")
+    public ResponseEntity<List<Map<String, Object>>> getStationTurnover() {
+        return ResponseEntity.ok(bikeService.getStationTurnover());
+    }
+
+    @GetMapping("/time-distance")
+    public ResponseEntity<List<Map<String, Object>>> getTimeAndDistance() {
+        return ResponseEntity.ok(bikeService.getTimeAndDistance());
+    }
+
+    @GetMapping("/demographics")
+    public ResponseEntity<List<Map<String, Object>>> getUserDemographics() {
+        return ResponseEntity.ok(bikeService.getUserDemographics());
+    }
+
+    @GetMapping("/daily-trend")
+    public ResponseEntity<List<Map<String, Object>>> getDailyTrend() {
+        return ResponseEntity.ok(bikeService.getDailyTrend());
+    }
+
+    @GetMapping("/district-usage")
+    public ResponseEntity<List<Map<String, Object>>> getUsageByDistrict() {
+        return ResponseEntity.ok(bikeService.getUsageByDistrict());
+    }
+
+    @GetMapping("/distance-carbon")
+    public ResponseEntity<List<Map<String, Object>>> getDistanceAndCarbon() {
+        return ResponseEntity.ok(bikeService.getDistanceAndCarbon());
     }
 }
