@@ -18,18 +18,21 @@ import java.util.Map;
 public class BikeService {
     private final BikeRepository bikeRepository;
 
-    public Long getTotalUsageCount(){
-        return bikeRepository.getTotalUsageCount();
+    @Cacheable(value = "bikeStats", key = "'totalUsage'", condition = "#district == null && #month == null")
+    public Long getTotalUsageCount(String district, Integer month){
+        return bikeRepository.getTotalUsageCount(district, month);
     }
 
-    public Double getTotalCarbonSavings() {
-        Double total = bikeRepository.sumTotalCarbonAmount();
+    @Cacheable(value = "bikeStats", key = "'totalCarbon'", condition = "#district == null && #month == null")
+    public Double getTotalCarbonSavings(String district, Integer month) {
+        Double total = bikeRepository.sumTotalCarbonAmount(district, month);
         return total != null ? total : 0.0;
     }
 
-    public List<Map<String, Object>> getTop10Stations() {
+    @Cacheable(value = "bikeStats", key = "'topStationsTotal'", condition = "#district == null && #month == null")
+    public List<Map<String, Object>> getTop10Stations(String district, Integer month) {
         // 상위 10개만 가져오도록 설정
-        List<Object[]> results = bikeRepository.findTop10Stations(PageRequest.of(0, 10));
+        List<Object[]> results = bikeRepository.findTop10Stations(district, month, PageRequest.of(0, 10));
 
         return results.stream().map(result -> {
             Map<String, Object> map = new HashMap<>();
@@ -39,9 +42,10 @@ public class BikeService {
         }).toList();
     }
 
-    public List<Map<String, Object>> getAllStationUsage() {
+    @Cacheable(value = "bikeStats", key = "'allStationsTotal'", condition = "#district == null && #month == null")
+    public List<Map<String, Object>> getAllStationUsage(String district, Integer month) {
         // 전체 리스트 조회
-        List<Object[]> results = bikeRepository.findAllStationUsage();
+        List<Object[]> results = bikeRepository.findAllStationUsage(district, month);
 
         return results.stream().map(result -> {
             Map<String, Object> map = new HashMap<>();
@@ -51,8 +55,9 @@ public class BikeService {
         }).toList();
     }
 
-    public List<Map<String, Object>> getStationTurnover() {
-        List<Object[]> results = bikeRepository.findStationTurnover();
+    @Cacheable(value = "bikeStats", key = "'turnoverTotal'", condition = "#district == null && #month == null")
+    public List<Map<String, Object>> getStationTurnover(String district, Integer month) {
+        List<Object[]> results = bikeRepository.findStationTurnover(district, month);
         return results.stream().map(result -> {
             Map<String, Object> map = new HashMap<>();
             map.put("rentTypeCode", result[0]);
@@ -61,8 +66,9 @@ public class BikeService {
         }).toList();
     }
 
-    public List<Map<String, Object>> getTimeAndDistance() {
-        List<Object[]> results = bikeRepository.findTimeAndDistance();
+    @Cacheable(value = "bikeStats", key = "'timeDistanceTotal'", condition = "#district == null && #month == null")
+    public List<Map<String, Object>> getTimeAndDistance(String district, Integer month) {
+        List<Object[]> results = bikeRepository.findTimeAndDistance(district, month);
         return results.stream().map(result -> {
             Map<String, Object> map = new HashMap<>();
             map.put("useTime", result[0]);
@@ -71,8 +77,9 @@ public class BikeService {
         }).toList();
     }
 
-    public List<Map<String, Object>> getUserDemographics() {
-        List<Object[]> results = bikeRepository.findUserDemographics();
+    @Cacheable(value = "bikeStats", key = "'demographicsTotal'", condition = "#district == null && #month == null")
+    public List<Map<String, Object>> getUserDemographics(String district, Integer month) {
+        List<Object[]> results = bikeRepository.findUserDemographics(district, month);
         return results.stream().map(result -> {
             Map<String, Object> map = new HashMap<>();
             map.put("ageGroup", result[0]);
@@ -82,8 +89,9 @@ public class BikeService {
         }).toList();
     }
 
-    public List<Map<String, Object>> getDailyTrend() {
-        List<Object[]> results = bikeRepository.findDailyTrend();
+    @Cacheable(value = "bikeStats", key = "'dailyTrendTotal'", condition = "#district == null && #month == null")
+    public List<Map<String, Object>> getDailyTrend(String district, Integer month) {
+        List<Object[]> results = bikeRepository.findDailyTrend(district, month);
         return results.stream().map(result -> {
             Map<String, Object> map = new HashMap<>();
             map.put("rentDay", result[0]);
@@ -105,9 +113,10 @@ public class BikeService {
         return data;
     }
 
-    public List<Map<String, Object>> getDistanceAndCarbon() {
+    @Cacheable(value = "bikeStats", key = "'distanceCarbonTotal'", condition = "#district == null && #month == null")
+    public List<Map<String, Object>> getDistanceAndCarbon(String district, Integer month) {
         // 샘플링을 위해 500건만 가져오도록 설정
-        List<Object[]> results = bikeRepository.findDistanceAndCarbon(PageRequest.of(0, 500));
+        List<Object[]> results = bikeRepository.findDistanceAndCarbon(district, month, PageRequest.of(0, 500));
         return results.stream().map(result -> {
             Map<String, Object> map = new HashMap<>();
             map.put("distance", result[0]);

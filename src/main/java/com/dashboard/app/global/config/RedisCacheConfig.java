@@ -28,6 +28,14 @@ public class RedisCacheConfig {
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
+        // [중요] GenericJackson2JsonRedisSerializer에서 객체 타입을 보존하기 위해 Default Typing 설정
+        // Long은 final 클래스이므로 NON_FINAL 대신 EVERYTHING을 사용해야 타입 정보가 저장됨
+        // As.WRAPPER_ARRAY는 스칼라 값(Long, Integer 등)을 처리할 때 더 안정적임
+        PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
+                .allowIfBaseType(Object.class)
+                .build();
+        mapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.EVERYTHING, JsonTypeInfo.As.WRAPPER_ARRAY);
+
         return mapper;
     }
 
