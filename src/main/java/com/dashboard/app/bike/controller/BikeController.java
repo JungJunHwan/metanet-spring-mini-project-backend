@@ -84,6 +84,9 @@ public class BikeController {
     public ResponseEntity<List<Map<String, Object>>> getDistanceAndCarbon(
             @RequestParam(required = false) String district,
             @RequestParam(required = false) Integer month) {
-        return ResponseEntity.ok(bikeService.getDistanceAndCarbon(district, month));
+        System.out.println("----------------조회 시작");
+        List<Map<String, Object>> result = bikeService.getDistanceAndCarbon(district, month);
+        System.out.println("----------------조회 끝");
+        return ResponseEntity.ok(result);
     }
-}
+}
