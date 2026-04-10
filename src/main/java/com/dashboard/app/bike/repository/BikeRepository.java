@@ -40,18 +40,11 @@ public interface BikeRepository extends JpaRepository<Bike, Long> {
     @Query("SELECT b.ageGroup, b.gender, SUM(b.useCount) FROM Bike b GROUP BY b.ageGroup, b.gender")
     List<Object[]> findUserDemographics();
 
-    // 시간대별 이용 분포
-    @Query("SELECT FUNCTION('TO_CHAR', b.rentDate, 'HH24') as rentHour, SUM(b.useCount) " +
-            "FROM Bike b " +
-            "GROUP BY FUNCTION('TO_CHAR', b.rentDate, 'HH24') " +
-            "ORDER BY rentHour")
-    List<Object[]> findTimeDistribution();
-
-    // 일별/월별 대여 추이
-    @Query("SELECT FUNCTION('TO_CHAR', b.rentDate, 'YYYY-MM-DD') as rentDay, SUM(b.useCount) " +
-            "FROM Bike b " +
-            "GROUP BY FUNCTION('TO_CHAR', b.rentDate, 'YYYY-MM-DD') " +
-            "ORDER BY rentDay")
+    // 일별/월별 대여 추이 (오라클 TRUNC 함수 사용을 위해 Native Query로 변경)
+    @Query(value = "SELECT TRUNC(RENT_DATE) as rentDay, SUM(USE_COUNT) as usageCount " +
+            "FROM BIKE " +
+            "GROUP BY TRUNC(RENT_DATE) " +
+            "ORDER BY rentDay", nativeQuery = true)
     List<Object[]> findDailyTrend();
 
     // 자치구별 통계 (Station 조인)
@@ -60,4 +53,8 @@ public interface BikeRepository extends JpaRepository<Bike, Long> {
            "GROUP BY s.district " +
            "ORDER BY totalUsage DESC")
     List<Object[]> findUsageByDistrict();
+
+    // 거리 vs 탄소 절감량 (산점도용 샘플 데이터)
+    @Query("SELECT b.distance, b.carbonAmount FROM Bike b")
+    List<Object[]> findDistanceAndCarbon(Pageable pageable);
 }

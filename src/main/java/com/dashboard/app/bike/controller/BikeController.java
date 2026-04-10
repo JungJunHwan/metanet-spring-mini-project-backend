@@ -53,11 +53,6 @@ public class BikeController {
         return ResponseEntity.ok(bikeService.getUserDemographics());
     }
 
-    @GetMapping("/time-distribution")
-    public ResponseEntity<List<Map<String, Object>>> getTimeDistribution() {
-        return ResponseEntity.ok(bikeService.getTimeDistribution());
-    }
-
     @GetMapping("/daily-trend")
     public ResponseEntity<List<Map<String, Object>>> getDailyTrend() {
         return ResponseEntity.ok(bikeService.getDailyTrend());
@@ -66,5 +61,10 @@ public class BikeController {
     @GetMapping("/district-usage")
     public ResponseEntity<List<Map<String, Object>>> getUsageByDistrict() {
         return ResponseEntity.ok(bikeService.getUsageByDistrict());
+    }
+
+    @GetMapping("/distance-carbon")
+    public ResponseEntity<List<Map<String, Object>>> getDistanceAndCarbon() {
+        return ResponseEntity.ok(bikeService.getDistanceAndCarbon());
     }
 }

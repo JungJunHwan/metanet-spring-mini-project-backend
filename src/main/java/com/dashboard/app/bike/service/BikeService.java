@@ -82,16 +82,6 @@ public class BikeService {
         }).toList();
     }
 
-    public List<Map<String, Object>> getTimeDistribution() {
-        List<Object[]> results = bikeRepository.findTimeDistribution();
-        return results.stream().map(result -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("rentHour", result[0]);
-            map.put("usageCount", result[1]);
-            return map;
-        }).toList();
-    }
-
     public List<Map<String, Object>> getDailyTrend() {
         List<Object[]> results = bikeRepository.findDailyTrend();
         return results.stream().map(result -> {
@@ -113,5 +103,16 @@ public class BikeService {
             return map;
         }).toList();
         return data;
+    }
+
+    public List<Map<String, Object>> getDistanceAndCarbon() {
+        // 샘플링을 위해 500건만 가져오도록 설정
+        List<Object[]> results = bikeRepository.findDistanceAndCarbon(PageRequest.of(0, 500));
+        return results.stream().map(result -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("distance", result[0]);
+            map.put("carbon", result[1]);
+            return map;
+        }).toList();
     }
 }
