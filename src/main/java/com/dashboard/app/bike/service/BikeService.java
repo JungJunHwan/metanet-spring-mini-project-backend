@@ -115,13 +115,19 @@ public class BikeService {
 
     @Cacheable(value = "bikeStats", key = "'distanceCarbonTotal'", condition = "#district == null && #month == null")
     public List<Map<String, Object>> getDistanceAndCarbon(String district, Integer month) {
-        // 샘플링을 위해 500건만 가져오도록 설정
-        List<Object[]> results = bikeRepository.findDistanceAndCarbon(district, month, PageRequest.of(0, 500));
-        return results.stream().map(result -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("distance", result[0]);
-            map.put("carbon", result[1]);
-            return map;
-        }).toList();
+        // 전체 데이터를 좌표 기준으로 그룹핑(Count)하여 가져옴
+        List<Object[]> results = bikeRepository.findDistanceAndCarbon(district, month);
+        
+        // 메모리 및 네트워크 과부하 방지를 위해 가중치(이용 건수)가 높은 상위 1000개만 반환
+        return results.stream()
+                .sorted((o1, o2) -> Long.compare(((Number) o2[2]).longValue(), ((Number) o1[2]).longValue()))
+                .limit(1000)
+                .map(result -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("distance", result[0]);
+                    map.put("carbon", result[1]);
+                    map.put("weight", result[2]); // 빈도수 가중치 추가
+                    return map;
+                }).toList();
     }
 }
