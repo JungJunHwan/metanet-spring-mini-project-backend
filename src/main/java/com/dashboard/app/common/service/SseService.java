@@ -31,9 +31,12 @@ public class SseService {
             return emitter;
         }
 
-        emitter.onTimeout(()    -> emitters.remove(emitter));
-        emitter.onCompletion(() -> emitters.remove(emitter));
-        emitter.onError(e       -> emitters.remove(emitter));
+        emitter.onTimeout(()    -> { emitters.remove(emitter); broadcastUserCount(); });
+        emitter.onCompletion(() -> { emitters.remove(emitter); broadcastUserCount(); });
+        emitter.onError(e       -> { emitters.remove(emitter); broadcastUserCount(); });
+
+        // 즉시 전역 브로드캐스트 (새로운 접속 발생)
+        broadcastUserCount();
 
         return emitter;
     }
