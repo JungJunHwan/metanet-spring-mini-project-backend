@@ -1,5 +1,6 @@
 package com.dashboard.app.user.controller;
 
+import com.dashboard.app.global.dto.ApiResponse;
 import com.dashboard.app.user.dto.UserLoginReqDto;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -25,25 +26,27 @@ public class UserController {
 
     // ✅ 회원가입
     @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String signup(@Valid @ModelAttribute UserCreateReqDto dto) {
+    public ResponseEntity<ApiResponse<Void>> signup(@Valid @ModelAttribute UserCreateReqDto dto) {
         userService.signup(dto);
-        return "회원가입 성공";
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(HttpStatus.CREATED, "회원가입 성공", null));
     }
 
     // ✅ 로그인
     @PostMapping("/login")
-    public UserLoginResDto login(@RequestBody UserLoginReqDto dto) {
-        return userService.login(dto.getLoginId(), dto.getPassword());
+    public ResponseEntity<ApiResponse<UserLoginResDto>> login(@RequestBody UserLoginReqDto dto) {
+        UserLoginResDto res = userService.login(dto.getLoginId(), dto.getPassword());
+        return ResponseEntity.ok(ApiResponse.success(res));
     }
 
     @GetMapping("/{userId}")
-    public UserResDto getUser(@PathVariable Long userId) {
-        return userService.getUser(userId);
+    public ResponseEntity<ApiResponse<UserResDto>> getUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(ApiResponse.success(userService.getUser(userId)));
     }
 
     @PatchMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public UserResDto updateUser(@PathVariable Long userId, @ModelAttribute UserUpdateReqDto dto) {
-        return userService.updateUser(userId, dto);
+    public ResponseEntity<ApiResponse<UserResDto>> updateUser(@PathVariable Long userId, @ModelAttribute UserUpdateReqDto dto) {
+        return ResponseEntity.ok(ApiResponse.success(userService.updateUser(userId, dto)));
     }
 
     @GetMapping("/{userId}/profile-image")
@@ -58,8 +61,8 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}")
-    public String deleteUser(@PathVariable Long userId) {
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
-        return "회원 탈퇴 완료";
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "회원 탈퇴 완료", null));
     }
 }
