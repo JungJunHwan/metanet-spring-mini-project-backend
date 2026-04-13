@@ -25,7 +25,7 @@ import com.jayway.jsonpath.JsonPath;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Transactional // 테스트 후 실제 데이터베이스 롤백 처리
+@Transactional
 public class UserControllerIntegrationTest {
 
     @Autowired
@@ -40,16 +40,13 @@ public class UserControllerIntegrationTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        // 회원가입을 공통으로 수행하여 다른 테스트에서 사용할 수 있도록 셋업
         testLoginId = "testuser" + UUID.randomUUID().toString().substring(0, 5);
         MockMultipartFile profileImage = new MockMultipartFile(
-                "profileImage",
-                "test-profile.jpg",
-                MediaType.IMAGE_JPEG_VALUE,
+                "profileImage", "test-profile.jpg", MediaType.IMAGE_JPEG_VALUE,
                 "dummy image content".getBytes()
         );
 
-        MvcResult result = mockMvc.perform(multipart("/bike/users/signup")
+        mockMvc.perform(multipart("/bike/users/signup")
                         .file(profileImage)
                         .param("loginId", testLoginId)
                         .param("password", "Test1234!")
@@ -59,77 +56,146 @@ public class UserControllerIntegrationTest {
                         .param("birth", "1990-01-01")
                         .param("gender", "M")
                         .contentType(MediaType.MULTIPART_FORM_DATA))
-                .andExpect(status().isOk())
-                .andReturn();
+                .andExpect(status().isCreated());
 
-        // 생성된 유저 ID를 얻기 위해 로그인을 수행
-        Map<String, String> loginRequest = new HashMap<>();
-        loginRequest.put("loginId", testLoginId);
-        loginRequest.put("password", "Test1234!");
-
-        String jsonLoginRequest = objectMapper.writeValueAsString(loginRequest);
+        Map<String, String> loginReq = new HashMap<>();
+        loginReq.put("loginId", testLoginId);
+        loginReq.put("password", "Test1234!");
 
         MvcResult loginResult = mockMvc.perform(post("/bike/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonLoginRequest))
+                        .content(objectMapper.writeValueAsString(loginReq)))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String responseBody = loginResult.getResponse().getContentAsString();
-        Integer userIdInt = JsonPath.read(responseBody, "$.userId");
+        String body = loginResult.getResponse().getContentAsString();
+        Integer userIdInt = JsonPath.read(body, "$.data.userId");
         createdUserId = userIdInt.longValue();
-        jwtToken = JsonPath.read(responseBody, "$.token");
+        jwtToken = JsonPath.read(body, "$.data.token");
     }
 
+    // ── 1. 회원가입 ───────────────────────────────────────────────────
+
     @Test
-    @DisplayName("1. 회원가입 테스트 - setUp()에서 이미 성공 검증되었으므로 추가 검증 불필요")
+    @DisplayName("1. 회원가입 성공 - setUp()에서 검증 완료")
     void testSignup() {
-        // 이미 BeforeEach에서 회원가입이 테스트되었습니다.
+        // setUp()의 회원가입 성공으로 검증 완료
     }
 
     @Test
-    @DisplayName("2. 로그인 테스트 (성공 및 실패)")
-    void testLogin() throws Exception {
-        // 올바른 정보로 로그인
-        Map<String, String> validLogin = new HashMap<>();
-        validLogin.put("loginId", testLoginId);
-        validLogin.put("password", "Test1234!");
+    @DisplayName("1-1. 회원가입 실패 - 중복 아이디 (Branch: loginId 중복 체크 → 400 Bad Request)")
+    void testSignupDuplicateLoginId() throws Exception {
+        // testLoginId는 setUp()에서 이미 등록됨 → IllegalArgumentException → GlobalExceptionHandler → 400
+        MockMultipartFile img = new MockMultipartFile(
+                "profileImage", "img.jpg", MediaType.IMAGE_JPEG_VALUE, "img".getBytes()
+        );
+        mockMvc.perform(multipart("/bike/users/signup")
+                        .file(img)
+                        .param("loginId", testLoginId)
+                        .param("password", "Test1234!")
+                        .param("name", "중복유저")
+                        .param("email", "dup@test.com")
+                        .param("phone", "010-0000-0000")
+                        .param("birth", "1990-01-01")
+                        .param("gender", "F")
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isBadRequest()); // 400: IllegalArgumentException → GlobalExceptionHandler
+    }
+
+    // ── 2. 로그인 ─────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("2. 로그인 성공")
+    void testLoginSuccess() throws Exception {
+        Map<String, String> req = new HashMap<>();
+        req.put("loginId", testLoginId);
+        req.put("password", "Test1234!");
 
         mockMvc.perform(post("/bike/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validLogin)))
+                        .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.loginId").value(testLoginId))
-                .andExpect(jsonPath("$.userId").value(createdUserId))
+                .andExpect(jsonPath("$.data.loginId").value(testLoginId))
+                .andExpect(jsonPath("$.data.userId").value(createdUserId.intValue()))
                 .andDo(print());
-
-        // 잘못된 정보로 로그인
-        Map<String, String> invalidLogin = new HashMap<>();
-        invalidLogin.put("loginId", testLoginId);
-        invalidLogin.put("password", "WrongPassword!");
-
-        mockMvc.perform(post("/bike/users/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidLogin)))
-                .andExpect(status().is5xxServerError()); // 예외 글로벌 핸들러에 따라 달라질 수 있음. 통상적으로 401 혹은 서버 에러
     }
 
     @Test
-    @DisplayName("3. 유저 정보 조회 테스트")
+    @DisplayName("2-1. 로그인 실패 - 비밀번호 불일치 (Branch: passwordEncoder.matches false)")
+    void testLoginWrongPassword() throws Exception {
+        Map<String, String> req = new HashMap<>();
+        req.put("loginId", testLoginId);
+        req.put("password", "WrongPassword!");
+
+        mockMvc.perform(post("/bike/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().is5xxServerError());
+    }
+
+    @Test
+    @DisplayName("2-2. 로그인 실패 - 존재하지 않는 아이디 (Branch: orElseThrow)")
+    void testLoginNonexistentUser() throws Exception {
+        Map<String, String> req = new HashMap<>();
+        req.put("loginId", "nonexistent_xyz_user");
+        req.put("password", "Test1234!");
+
+        mockMvc.perform(post("/bike/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().is5xxServerError());
+    }
+
+    @Test
+    @DisplayName("2-3. 로그인 실패 - 탈퇴 회원 (Branch: status == 'Y')")
+    void testLoginWithdrawnUser() throws Exception {
+        // 탈퇴 처리
+        mockMvc.perform(delete("/bike/users/{userId}", createdUserId)
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().isOk());
+
+        // 탈퇴 후 로그인 → "탈퇴한 회원" 분기
+        Map<String, String> req = new HashMap<>();
+        req.put("loginId", testLoginId);
+        req.put("password", "Test1234!");
+
+        mockMvc.perform(post("/bike/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().is5xxServerError());
+    }
+
+    // ── 3. 유저 조회 ──────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("3. 유저 정보 조회 - 정상")
     void testGetUser() throws Exception {
         mockMvc.perform(get("/bike/users/{userId}", createdUserId)
                         .header("Authorization", "Bearer " + jwtToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.loginId").value(testLoginId))
-                .andExpect(jsonPath("$.name").value("테스트유저"))
-                .andExpect(jsonPath("$.email").value("test@test.com"))
+                .andExpect(jsonPath("$.data.loginId").value(testLoginId))
+                .andExpect(jsonPath("$.data.name").value("테스트유저"))
+                .andExpect(jsonPath("$.data.email").value("test@test.com"))
                 .andDo(print());
     }
 
     @Test
-    @DisplayName("4. 유저 프로필 이미지 다운로드 테스트")
+    @DisplayName("3-1. 유저 조회 - 탈퇴 회원 (Branch: getUser status == 'Y')")
+    void testGetUserWithdrawn() throws Exception {
+        mockMvc.perform(delete("/bike/users/{userId}", createdUserId)
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/bike/users/{userId}", createdUserId)
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().is5xxServerError());
+    }
+
+    // ── 4. 프로필 이미지 ──────────────────────────────────────────────
+
+    @Test
+    @DisplayName("4. 유저 프로필 이미지 다운로드 - 정상")
     void testGetProfileImage() throws Exception {
-        // 프로필 이미지는 Security 설정(SecurityConfig)에 따라 다를 수 있지만, 일단 토큰을 넣어서 호출
         mockMvc.perform(get("/bike/users/{userId}/profile-image", createdUserId)
                         .header("Authorization", "Bearer " + jwtToken))
                 .andExpect(status().isOk())
@@ -138,41 +204,73 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("5. 유저 정보 수정 테스트 (PATCH)")
-    void testUpdateUser() throws Exception {
-        MockMultipartFile dummyImage = new MockMultipartFile(
-                "profileImage",
-                "new-profile.jpg",
-                MediaType.IMAGE_JPEG_VALUE,
-                "new dummy image".getBytes()
+    @DisplayName("4-1. 프로필 이미지 - 탈퇴 회원 (Branch: getUserProfileImage status == 'Y')")
+    void testGetProfileImageWithdrawn() throws Exception {
+        mockMvc.perform(delete("/bike/users/{userId}", createdUserId)
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/bike/users/{userId}/profile-image", createdUserId)
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().is5xxServerError());
+    }
+
+    // ── 5. 유저 수정 ──────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("5. 유저 정보 수정 - 전체 필드")
+    void testUpdateUserAllFields() throws Exception {
+        MockMultipartFile img = new MockMultipartFile(
+                "profileImage", "new.jpg", MediaType.IMAGE_JPEG_VALUE, "new image".getBytes()
         );
 
         mockMvc.perform(multipart(HttpMethod.PATCH, "/bike/users/{userId}", createdUserId)
-                        .file(dummyImage)
+                        .file(img)
                         .param("name", "수정된유저")
                         .param("email", "update@test.com")
                         .param("phone", "010-9999-8888")
                         .param("password", "NewPass123!")
                         .header("Authorization", "Bearer " + jwtToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("수정된유저"))
-                .andExpect(jsonPath("$.email").value("update@test.com"))
+                .andExpect(jsonPath("$.data.name").value("수정된유저"))
+                .andExpect(jsonPath("$.data.email").value("update@test.com"))
                 .andDo(print());
     }
 
     @Test
-    @DisplayName("6. 회원 탈퇴 (DELETE) 테스트")
+    @DisplayName("5-1. 유저 정보 수정 - 일부 필드만 (Branch: null 필드 건너뜀)")
+    void testUpdateUserPartialFields() throws Exception {
+        // 이름만 변경, 나머지 null → null 체크 분기 커버
+        mockMvc.perform(multipart(HttpMethod.PATCH, "/bike/users/{userId}", createdUserId)
+                        .param("name", "이름만변경")
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.name").value("이름만변경"));
+    }
+
+    // ── 6. 회원 탈퇴 ──────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("6. 회원 탈퇴 성공")
     void testDeleteUser() throws Exception {
-        // 삭제 요청
         mockMvc.perform(delete("/bike/users/{userId}", createdUserId)
                         .header("Authorization", "Bearer " + jwtToken))
                 .andExpect(status().isOk())
-                .andExpect(content().string("회원 탈퇴 완료"))
+                .andExpect(jsonPath("$.message").value("회원 탈퇴 완료"))
                 .andDo(print());
+    }
 
-        // 삭제 후 조회 시 에러가 나거나 접근이 거부되어야 함 (현재는 500에러 등 리턴될 수 있음)
-        mockMvc.perform(get("/bike/users/{userId}", createdUserId)
+    @Test
+    @DisplayName("6-1. 이미 탈퇴 회원 재탈퇴 시도 (Branch: deleteUser status == 'Y')")
+    void testDeleteAlreadyWithdrawnUser() throws Exception {
+        // 1차 탈퇴
+        mockMvc.perform(delete("/bike/users/{userId}", createdUserId)
                         .header("Authorization", "Bearer " + jwtToken))
-                .andExpect(status().is5xxServerError()); // 예외 처리에 따라 isNotFound() 가 될 수 있으나 현재는 exception을 던짐
+                .andExpect(status().isOk());
+
+        // 2차 탈퇴 → "이미 탈퇴한 회원입니다" 분기
+        mockMvc.perform(delete("/bike/users/{userId}", createdUserId)
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().is5xxServerError());
     }
 }
