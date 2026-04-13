@@ -34,6 +34,33 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 존재하지 않는 사용자 조회 시 — 404 Not Found
+     */
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUserNotFoundException(UserNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(HttpStatus.NOT_FOUND, ex.getMessage()));
+    }
+
+    /**
+     * 비밀번호 불일치 등 인증 실패 시 — 401 Unauthorized
+     */
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidCredentialsException(InvalidCredentialsException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(HttpStatus.UNAUTHORIZED, ex.getMessage()));
+    }
+
+    /**
+     * 탈퇴 처리된 계정 접근 시 — 409 Conflict
+     */
+    @ExceptionHandler(UserWithdrawnException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUserWithdrawnException(UserWithdrawnException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(HttpStatus.CONFLICT, ex.getMessage()));
+    }
+
+    /**
      * 그 외 RuntimeException — 500 대신 의미 있는 메시지로 응답
      */
     @ExceptionHandler(RuntimeException.class)

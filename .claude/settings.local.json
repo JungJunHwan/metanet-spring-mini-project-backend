@@ -7,7 +7,19 @@
       "Bash(./gradlew cleanEclipse:*)",
       "Bash(./gradlew build:*)",
       "Bash(ls /c/dev/springboot-workspace/metanet-spring-mini-project/README*)",
-      "Bash(xargs grep:*)"
+      "Bash(xargs grep:*)",
+      "Bash(sqlplus:*)",
+      "Bash(ls /opt/oracle*)",
+      "Bash(ls /u01)",
+      "Bash(ls /c/oracle*)",
+      "Read(//c//**)",
+      "Read(//mnt/**)",
+      "Bash(cmd.exe /c \"where sqlplus\")",
+      "Bash(cmd.exe /c \"dir C:\\\\oracle* /b\")",
+      "Bash(cmd.exe:*)",
+      "Bash(pip show:*)",
+      "Bash(pip install:*)",
+      "Bash(python:*)"
     ]
   }
 }
