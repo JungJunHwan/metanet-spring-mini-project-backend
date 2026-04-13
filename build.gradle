@@ -1,5 +1,6 @@
 plugins {
 	id 'java'
+	id 'jacoco'
 	id 'org.springframework.boot' version '3.5.13'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
@@ -19,6 +20,7 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+	implementation 'org.springframework.boot:spring-boot-starter-aop'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -43,8 +45,35 @@ dependencies {
 
 	// Security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+
+	//env
+	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
 }
 
+// 전체 테스트 실행 후 JaCoCo 리포트 자동 생성
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+// JaCoCo 커버리지 리포트 설정
+jacocoTestReport {
+	dependsOn test
+	reports {
+		html.required = true   // 브라우저로 열 수 있는 HTML 리포트
+		xml.required = false
+		csv.required = false
+	}
+	// DTO / Entity / 설정 / 메인 클래스는 커버리지 측정에서 제외
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: [
+				'**/dto/**',
+				'**/entity/**',
+				'**/*Application*',
+				'**/config/**',
+				'**/global/aop/**',    // AOP 로깅 클래스 제외
+			])
+		}))
+	}
 }

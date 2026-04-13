@@ -1,6 +1,6 @@
-package com.dashboard.app.common.controller;
+package com.dashboard.app.sse.controller;
 
-import com.dashboard.app.common.service.SseService;
+import com.dashboard.app.sse.service.SseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
