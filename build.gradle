@@ -45,6 +45,9 @@ dependencies {
 
 	// Security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+
+	//env
+	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
 }
 
 // 전체 테스트 실행 후 JaCoCo 리포트 자동 생성
