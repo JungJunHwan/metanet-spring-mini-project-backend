@@ -130,7 +130,7 @@ public class UserControllerIntegrationTest {
         mockMvc.perform(post("/bike/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isUnauthorized()); // 401: InvalidCredentialsException
     }
 
     @Test
@@ -143,7 +143,7 @@ public class UserControllerIntegrationTest {
         mockMvc.perform(post("/bike/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isNotFound()); // 404: UserNotFoundException
     }
 
     @Test
@@ -162,7 +162,7 @@ public class UserControllerIntegrationTest {
         mockMvc.perform(post("/bike/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isConflict()); // 409: UserWithdrawnException
     }
 
     // ── 3. 유저 조회 ──────────────────────────────────────────────────
@@ -188,7 +188,7 @@ public class UserControllerIntegrationTest {
 
         mockMvc.perform(get("/bike/users/{userId}", createdUserId)
                         .header("Authorization", "Bearer " + jwtToken))
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isConflict()); // 409: UserWithdrawnException
     }
 
     // ── 4. 프로필 이미지 ──────────────────────────────────────────────
@@ -212,7 +212,7 @@ public class UserControllerIntegrationTest {
 
         mockMvc.perform(get("/bike/users/{userId}/profile-image", createdUserId)
                         .header("Authorization", "Bearer " + jwtToken))
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isConflict()); // 409: UserWithdrawnException
     }
 
     // ── 5. 유저 수정 ──────────────────────────────────────────────────
@@ -271,6 +271,6 @@ public class UserControllerIntegrationTest {
         // 2차 탈퇴 → "이미 탈퇴한 회원입니다" 분기
         mockMvc.perform(delete("/bike/users/{userId}", createdUserId)
                         .header("Authorization", "Bearer " + jwtToken))
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isConflict()); // 409: UserWithdrawnException
     }
 }

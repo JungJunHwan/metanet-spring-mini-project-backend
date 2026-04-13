@@ -3,6 +3,9 @@ package com.dashboard.app.user.service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.dashboard.app.global.exception.InvalidCredentialsException;
+import com.dashboard.app.global.exception.UserNotFoundException;
+import com.dashboard.app.global.exception.UserWithdrawnException;
 import com.dashboard.app.global.security.JwtUtil;
 import com.dashboard.app.user.domain.User;
 import com.dashboard.app.user.dto.UserCreateReqDto;
@@ -62,14 +65,14 @@ public class UserService {
     public UserLoginResDto login(String loginId, String password) {
 
         User user = userRepository.findByLoginId(loginId)
-                .orElseThrow(() -> new RuntimeException("아이디 없음"));
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 아이디입니다."));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("비밀번호 틀림");
+            throw new InvalidCredentialsException("비밀번호가 일치하지 않습니다.");
         }
 
         if (user.getStatus() == 'Y') {
-            throw new RuntimeException("탈퇴한 회원");
+            throw new UserWithdrawnException("탈퇴한 회원입니다.");
         }
 
         String token = jwtUtil.createToken(user.getLoginId());
@@ -79,10 +82,10 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserResDto getUser(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
 
         if (user.getStatus() == 'Y') {
-            throw new RuntimeException("탈퇴한 회원입니다.");
+            throw new UserWithdrawnException("탈퇴한 회원입니다.");
         }
 
         return new UserResDto(user);
@@ -91,10 +94,10 @@ public class UserService {
     @Transactional
     public UserResDto updateUser(Long userId, UserUpdateReqDto dto) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
 
         if (user.getStatus() == 'Y') {
-            throw new RuntimeException("탈퇴한 회원입니다.");
+            throw new UserWithdrawnException("탈퇴한 회원입니다.");
         }
 
         if (dto.getName() != null && !dto.getName().trim().isEmpty()) {
@@ -129,9 +132,9 @@ public class UserService {
     @Transactional(readOnly = true)
     public byte[] getUserProfileImage(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
         if (user.getStatus() == 'Y') {
-            throw new RuntimeException("탈퇴한 회원입니다.");
+            throw new UserWithdrawnException("탈퇴한 회원입니다.");
         }
         return user.getProfileImage();
     }
@@ -139,10 +142,10 @@ public class UserService {
     @Transactional
     public void deleteUser(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
 
         if (user.getStatus() == 'Y') {
-            throw new RuntimeException("이미 탈퇴한 회원입니다.");
+            throw new UserWithdrawnException("이미 탈퇴한 회원입니다.");
         }
 
         user.setStatus('Y');
