@@ -25,21 +25,17 @@ public class UserService {
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    // ✅ 회원가입
     public void signup(UserCreateReqDto dto) {
 
-        // 1-a. 아이디 입력값 검증 (null/공백 시 의미 없는 레코드가 DB에 쌓이는 것 방지)
         if (dto.getLoginId() == null || dto.getLoginId().trim().isEmpty()) {
             throw new IllegalArgumentException("아이디를 입력해주세요.");
         }
 
-        // 1-b. 아이디 중복 체크 (이메일이 아닌 loginId 기준 — UNIQUE 제약과 일치)
         userRepository.findByLoginId(dto.getLoginId())
                 .ifPresent(u -> {
                     throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
                 });
 
-        // 2. DTO → Domain 변환
         User user = new User();
         user.setName(dto.getName());
         user.setLoginId(dto.getLoginId());
@@ -55,13 +51,11 @@ public class UserService {
         } catch (java.io.IOException e) {
             throw new RuntimeException("프로필 이미지 처리 중 오류 발생", e);
         }
-        user.setStatus('N'); // 기본값
+        user.setStatus('N');
 
-        // 3. 저장
         userRepository.save(user);
     }
 
-    // ✅ 로그인
     public UserLoginResDto login(String loginId, String password) {
 
         User user = userRepository.findByLoginId(loginId)

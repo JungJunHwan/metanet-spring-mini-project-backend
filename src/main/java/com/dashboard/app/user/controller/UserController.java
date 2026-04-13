@@ -24,7 +24,6 @@ public class UserController {
 
     private final UserService userService;
 
-    // ✅ 회원가입
     @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Void>> signup(@Valid @ModelAttribute UserCreateReqDto dto) {
         userService.signup(dto);
@@ -32,7 +31,6 @@ public class UserController {
                 .body(ApiResponse.success(HttpStatus.CREATED, "회원가입 성공", null));
     }
 
-    // ✅ 로그인
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<UserLoginResDto>> login(@RequestBody UserLoginReqDto dto) {
         UserLoginResDto res = userService.login(dto.getLoginId(), dto.getPassword());

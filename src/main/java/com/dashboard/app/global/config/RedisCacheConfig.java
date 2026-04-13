@@ -24,13 +24,10 @@ public class RedisCacheConfig {
 
     public ObjectMapper redisCacheObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
-        // 날짜/시간 모듈 등록 (필수)
+
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        // [중요] GenericJackson2JsonRedisSerializer에서 객체 타입을 보존하기 위해 Default Typing 설정
-        // Long은 final 클래스이므로 NON_FINAL 대신 EVERYTHING을 사용해야 타입 정보가 저장됨
-        // As.WRAPPER_ARRAY는 스칼라 값(Long, Integer 등)을 처리할 때 더 안정적임
         PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
                 .allowIfBaseType(Object.class)
                 .build();
@@ -42,14 +39,13 @@ public class RedisCacheConfig {
 
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
-        // 주입받는 대신 내부 메서드 호출로 ObjectMapper 생성
         ObjectMapper redisCacheObjectMapper = redisCacheObjectMapper();
-        // 커스텀 ObjectMapper를 주입한 Serializer
+
         GenericJackson2JsonRedisSerializer serializer =
                 new GenericJackson2JsonRedisSerializer(redisCacheObjectMapper);
 
         RedisCacheConfiguration cacheConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(10))
+                .entryTtl(Duration.ofMinutes(30))
                 .serializeKeysWith(
                         RedisSerializationContext.SerializationPair
                                 .fromSerializer(new StringRedisSerializer()))

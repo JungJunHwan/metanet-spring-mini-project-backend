@@ -15,7 +15,6 @@ public class User {
 
     private String name;
 
-    // ★ 아이디는 시스템 전체에서 유일해야 하므로 UNIQUE + NOT NULL 제약
     @Column(unique = true, nullable = false)
     private String loginId;
 
@@ -34,7 +33,6 @@ public class User {
     @Column(length = 1)
     private char status; // 탈퇴 여부
 
-    // 회원가입 시 가입일을 자동으로 현재 날짜로 설정
     @PrePersist
     protected void onCreate() {
         if (this.signDate == null) {

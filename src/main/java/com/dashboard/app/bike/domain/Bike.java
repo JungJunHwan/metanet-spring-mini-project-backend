@@ -13,7 +13,7 @@ import java.time.LocalDate;
 public class Bike {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // 가상의 PK 추가 (JPA 필수)
+    private Long id;
 
     private LocalDate rentDate;
     private Long stationId;
