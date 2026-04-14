@@ -113,11 +113,10 @@ public class BikeService {
 
     @Cacheable(value = "bikeStats", key = "'distanceTimeTotal'", condition = "#district == null && #month == null")
     public List<Map<String, Object>> getDistanceTimeScatter(String district, Integer month) {
-        List<Object[]> results = bikeRepository.findDistanceTimeScatter(district, month);
+        // DB에서 상위 500건을 정렬해서 가져오도록 수정 (애플리케이션 부하 감소)
+        List<Object[]> results = bikeRepository.findDistanceTimeScatter(district, month, PageRequest.of(0, 500));
 
         return results.stream()
-                .sorted((o1, o2) -> Long.compare(((Number) o2[2]).longValue(), ((Number) o1[2]).longValue()))
-                .limit(500)
                 .map(result -> {
                     Map<String, Object> map = new HashMap<>();
                     map.put("distance", result[0]);

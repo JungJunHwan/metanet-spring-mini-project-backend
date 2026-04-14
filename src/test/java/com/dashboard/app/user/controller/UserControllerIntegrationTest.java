@@ -273,4 +273,201 @@ public class UserControllerIntegrationTest {
                         .header("Authorization", "Bearer " + jwtToken))
                 .andExpect(status().isConflict()); // 409: UserWithdrawnException
     }
+
+    // ── 7. 회원가입 - 추가 분기 ──────────────────────────────────────
+
+    @Test
+    @DisplayName("7-1. 회원가입 실패 - loginId가 null인 경우 (Branch: loginId == null)")
+    void testSignupNullLoginId() throws Exception {
+        MockMultipartFile img = new MockMultipartFile(
+                "profileImage", "img.jpg", MediaType.IMAGE_JPEG_VALUE, "img".getBytes()
+        );
+        // loginId 파라미터를 아예 보내지 않음 → null로 인식
+        mockMvc.perform(multipart("/bike/users/signup")
+                        .file(img)
+                        .param("password", "Test1234!")
+                        .param("name", "테스트유저")
+                        .param("email", "test@test.com")
+                        .param("phone", "010-1234-5678")
+                        .param("birth", "1990-01-01")
+                        .param("gender", "M")
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isBadRequest()); // 400: IllegalArgumentException (loginId null)
+    }
+
+    @Test
+    @DisplayName("7-2. 회원가입 실패 - loginId가 공백인 경우 (Branch: loginId.trim().isEmpty())")
+    void testSignupBlankLoginId() throws Exception {
+        MockMultipartFile img = new MockMultipartFile(
+                "profileImage", "img.jpg", MediaType.IMAGE_JPEG_VALUE, "img".getBytes()
+        );
+        mockMvc.perform(multipart("/bike/users/signup")
+                        .file(img)
+                        .param("loginId", "   ") // 공백만 있는 경우
+                        .param("password", "Test1234!")
+                        .param("name", "테스트유저")
+                        .param("email", "test@test.com")
+                        .param("phone", "010-1234-5678")
+                        .param("birth", "1990-01-01")
+                        .param("gender", "M")
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isBadRequest()); // 400: IllegalArgumentException (loginId blank)
+    }
+
+    @Test
+    @DisplayName("7-3. 회원가입 성공 - 프로필 이미지 없이 가입 (Branch: profileImage == null or isEmpty)")
+    void testSignupWithoutProfileImage() throws Exception {
+        String uniqueId = "nopic" + UUID.randomUUID().toString().substring(0, 5);
+        // profileImage 파라미터 자체를 전송하지 않음
+        mockMvc.perform(multipart("/bike/users/signup")
+                        .param("loginId", uniqueId)
+                        .param("password", "Test1234!")
+                        .param("name", "이미지없는유저")
+                        .param("email", "nopic@test.com")
+                        .param("phone", "010-0000-1111")
+                        .param("birth", "1995-05-05")
+                        .param("gender", "F")
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isCreated()); // 200: profileImage null 분기 통과
+    }
+
+    // ── 8. 유저 수정 - 추가 분기 ──────────────────────────────────────
+
+    @Test
+    @DisplayName("8-1. 유저 수정 - birth, gender 포함 전체 수정 (Branch: birth != null, gender not empty)")
+    void testUpdateUserWithBirthAndGender() throws Exception {
+        mockMvc.perform(multipart(HttpMethod.PATCH, "/bike/users/{userId}", createdUserId)
+                        .param("birth", "2000-12-31")
+                        .param("gender", "F")
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("8-2. 유저 수정 - 존재하지 않는 ID (Branch: updateUser orElseThrow)")
+    void testUpdateNonExistentUser() throws Exception {
+        mockMvc.perform(multipart(HttpMethod.PATCH, "/bike/users/{userId}", 999999L)
+                        .param("name", "없는유저")
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().isNotFound()); // 404: UserNotFoundException
+    }
+
+    @Test
+    @DisplayName("8-3. 유저 수정 - 탈퇴 회원 (Branch: updateUser status == 'Y')")
+    void testUpdateWithdrawnUser() throws Exception {
+        mockMvc.perform(delete("/bike/users/{userId}", createdUserId)
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(multipart(HttpMethod.PATCH, "/bike/users/{userId}", createdUserId)
+                        .param("name", "수정시도")
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().isConflict()); // 409: UserWithdrawnException
+    }
+
+    // ── 9. 존재하지 않는 유저 예외 분기 ──────────────────────────────
+
+    @Test
+    @DisplayName("9-1. 유저 조회 - 존재하지 않는 ID (Branch: getUser orElseThrow)")
+    void testGetNonExistentUser() throws Exception {
+        mockMvc.perform(get("/bike/users/{userId}", 999999L)
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().isNotFound()); // 404: UserNotFoundException
+    }
+
+    @Test
+    @DisplayName("9-2. 프로필 이미지 - 존재하지 않는 ID (Branch: getUserProfileImage orElseThrow)")
+    void testGetProfileImageOfNonExistentUser() throws Exception {
+        mockMvc.perform(get("/bike/users/{userId}/profile-image", 999999L)
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().isNotFound()); // 404: UserNotFoundException
+    }
+
+    @Test
+    @DisplayName("9-3. 회원 탈퇴 - 존재하지 않는 ID (Branch: deleteUser orElseThrow)")
+    void testDeleteNonExistentUser() throws Exception {
+        mockMvc.perform(delete("/bike/users/{userId}", 999999L)
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().isNotFound()); // 404: UserNotFoundException
+    }
+
+    // ── 10. JWT 필터 분기 (JwtAuthenticationFilter) ───────────────────
+
+    @Test
+    @DisplayName("10-1. JWT 없이 인증 필요 API 접근 (Branch: authHeader == null → 403)")
+    void testRequestWithoutJwtHeader() throws Exception {
+        // Authorization 헤더 없이 요청 → 필터에서 인증 설정 건너뜀 → 403
+        mockMvc.perform(get("/bike/users/{userId}", createdUserId))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("10-2. 잘못된 형식의 Authorization 헤더 (Branch: !authHeader.startsWith(\"Bearer \") → 403)")
+    void testRequestWithMalformedAuthHeader() throws Exception {
+        // "Bearer " 가 아닌 다른 형식으로 헤더 전송
+        mockMvc.perform(get("/bike/users/{userId}", createdUserId)
+                        .header("Authorization", "Basic abcdef1234=="))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("10-3. 유효하지 않은 JWT 토큰 (Branch: jwtUtil.validateToken → false → 403)")
+    void testRequestWithInvalidJwtToken() throws Exception {
+        // 변조된 토큰 → validateToken이 false 반환 → SecurityContext 비설정 → 403
+        mockMvc.perform(get("/bike/users/{userId}", createdUserId)
+                        .header("Authorization", "Bearer this.is.a.fake.invalid.token"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("10-4. 만료된 JWT 토큰 (Branch: jwtUtil.validateToken throws Exception → false → 403)")
+    void testRequestWithExpiredJwtToken() throws Exception {
+        // 형식은 맞지만 만료된(또는 다른 키로 서명된) 토큰
+        String expiredToken = "eyJhbGciOiJIUzI1NiJ9" +
+                ".eyJzdWIiOiJ0ZXN0dXNlciIsImlhdCI6MTYwMDAwMDAwMCwiZXhwIjoxNjAwMDAwMDAxfQ" +
+                ".SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+        mockMvc.perform(get("/bike/users/{userId}", createdUserId)
+                        .header("Authorization", "Bearer " + expiredToken))
+                .andExpect(status().isForbidden());
+    }
+
+    // ── 11. 프로필 이미지 없는 유저 조회 (UserController Branch 커버) ─────
+
+    @Test
+    @DisplayName("11-1. 프로필 이미지 없이 가입한 유저의 이미지 조회 → 404 (Branch: image == null or empty)")
+    void testGetProfileImage_noImage_returns404() throws Exception {
+        // 1. 이미지 없이 새 유저 가입
+        String noImageId = "noimg" + UUID.randomUUID().toString().substring(0, 5);
+        mockMvc.perform(multipart("/bike/users/signup")
+                        .param("loginId", noImageId)
+                        .param("password", "Test1234!")
+                        .param("name", "이미지없는유저")
+                        .param("email", "noimg@test.com")
+                        .param("phone", "010-0000-2222")
+                        .param("birth", "1998-03-03")
+                        .param("gender", "M")
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isCreated());
+
+        // 2. 해당 유저로 로그인하여 userId, token 획득
+        Map<String, String> loginReq = new HashMap<>();
+        loginReq.put("loginId", noImageId);
+        loginReq.put("password", "Test1234!");
+
+        MvcResult loginResult = mockMvc.perform(post("/bike/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginReq)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String body = loginResult.getResponse().getContentAsString();
+        Integer userIdInt = JsonPath.read(body, "$.data.userId");
+        Long noImageUserId = userIdInt.longValue();
+        String noImageToken = JsonPath.read(body, "$.data.token");
+
+        // 3. 프로필 이미지 조회 → image가 null이므로 404 반환 (Branch: image == null or image.length == 0)
+        mockMvc.perform(get("/bike/users/{userId}/profile-image", noImageUserId)
+                        .header("Authorization", "Bearer " + noImageToken))
+                .andExpect(status().isNotFound()); // 404: 이미지 없음
+    }
 }

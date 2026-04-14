@@ -86,14 +86,14 @@ public interface BikeRepository extends JpaRepository<Bike, Long> {
             nativeQuery = true)
     List<Object[]> findUsageByDistrict();
 
-    // 10. 이동거리 vs 이용시간 산점도 (AGG_DISTANCE_CARBON_STAT 재설계 테이블 사용)
     @Query(value = "SELECT DISTANCE, USE_TIME, SUM(TOTAL_USE_COUNT) as weight " +
             "FROM AGG_DISTANCE_CARBON_STAT " +
             "WHERE (:district IS NULL OR DISTRICT = :district) " +
             "AND (:month IS NULL OR RENT_MONTH = :month) " +
-            "GROUP BY DISTANCE, USE_TIME",
+            "GROUP BY DISTANCE, USE_TIME " +
+            "ORDER BY weight DESC",
             nativeQuery = true)
-    List<Object[]> findDistanceTimeScatter(@Param("district") String district, @Param("month") Integer month);
+    List<Object[]> findDistanceTimeScatter(@Param("district") String district, @Param("month") Integer month, Pageable pageable);
 
     // 11. 연령대별 이동거리 분포 박스플롯 (AGG_AGE_DISTANCE_STAT 사용)
     // district/month 필터 없이 조회 시 동일 AGE_GROUP이 여러 행으로 반환되는 문제 방지:
