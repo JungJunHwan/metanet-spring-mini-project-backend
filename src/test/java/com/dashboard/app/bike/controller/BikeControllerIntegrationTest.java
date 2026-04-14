@@ -130,13 +130,34 @@ public class BikeControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("11. 거리별 탄소 배출량 연관 관계 차트용 데이터 조회")
-    void testGetDistanceAndCarbon() throws Exception {
-        mockMvc.perform(get("/bike/stats/distance-carbon")
+    @DisplayName("11. 이동거리 vs 이용시간 산점도 데이터 조회")
+    void testGetDistanceTimeScatter() throws Exception {
+        mockMvc.perform(get("/bike/stats/distance-time")
                         .param("district", "용산구")
                         .param("month", "6"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.data").isArray())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("11-1. 연령대별 이동거리 박스플롯 데이터 조회")
+    void testGetAgeDistanceBoxplot() throws Exception {
+        mockMvc.perform(get("/bike/stats/age-distance"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.data").isArray())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("11-2. 연령대별 이동거리 박스플롯 - 구/월 필터 적용")
+    void testGetAgeDistanceBoxplotWithParams() throws Exception {
+        mockMvc.perform(get("/bike/stats/age-distance")
+                        .param("district", "강남구")
+                        .param("month", "6"))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").isArray())
                 .andDo(print());
     }
@@ -205,12 +226,26 @@ public class BikeControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("19. 거리별 탄소 - 구만 지정, 월 없음 (Branch: month==null, district!=null → condition false)")
-    void testGetDistanceAndCarbonDistrictOnly() throws Exception {
-        // district만 지정: condition = false (month==null이지만 district!=null)
-        // 대용량 전체 조회(OOM) 방지를 위해 반드시 district 필터 포함
-        mockMvc.perform(get("/bike/stats/distance-carbon")
+    @DisplayName("19. 이동거리 vs 이용시간 - 구만 지정, 월 없음 (Branch: month==null, district!=null → condition false)")
+    void testGetDistanceTimeScatterDistrictOnly() throws Exception {
+        mockMvc.perform(get("/bike/stats/distance-time")
                         .param("district", "강남구"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isArray());
+    }
+
+    @Test
+    @DisplayName("20. 이동거리 vs 이용시간 - 파라미터 없음 (Branch: condition true → 캐시 적용)")
+    void testGetDistanceTimeScatterNoParams() throws Exception {
+        mockMvc.perform(get("/bike/stats/distance-time"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isArray());
+    }
+
+    @Test
+    @DisplayName("21. 모든 대여소 - avgDistance 필드 포함 확인")
+    void testGetAllStationsHasAvgDistance() throws Exception {
+        mockMvc.perform(get("/bike/stats/all-stations"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").isArray());
     }

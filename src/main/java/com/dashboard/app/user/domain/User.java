@@ -25,7 +25,7 @@ public class User {
     @Column(length = 1)
     private char gender;
 
-    @jakarta.persistence.Lob
+    @Lob
     private byte[] profileImage;
 
     private Date signDate;

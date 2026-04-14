@@ -48,6 +48,7 @@ public class BikeService {
             Map<String, Object> map = new HashMap<>();
             map.put("stationName", result[0]);
             map.put("usageCount", result[1]);
+            map.put("avgDistance", result[2]);
             return map;
         }).toList();
     }
@@ -110,19 +111,34 @@ public class BikeService {
         return data;
     }
 
-    @Cacheable(value = "bikeStats", key = "'distanceCarbonTotal'", condition = "#district == null && #month == null")
-    public List<Map<String, Object>> getDistanceAndCarbon(String district, Integer month) {
-        List<Object[]> results = bikeRepository.findDistanceAndCarbon(district, month);
+    @Cacheable(value = "bikeStats", key = "'distanceTimeTotal'", condition = "#district == null && #month == null")
+    public List<Map<String, Object>> getDistanceTimeScatter(String district, Integer month) {
+        // DB에서 상위 500건을 정렬해서 가져오도록 수정 (애플리케이션 부하 감소)
+        List<Object[]> results = bikeRepository.findDistanceTimeScatter(district, month, PageRequest.of(0, 500));
 
         return results.stream()
-                .sorted((o1, o2) -> Long.compare(((Number) o2[2]).longValue(), ((Number) o1[2]).longValue()))
-                .limit(500)
                 .map(result -> {
                     Map<String, Object> map = new HashMap<>();
                     map.put("distance", result[0]);
-                    map.put("carbon", result[1]);
+                    map.put("useTime", result[1]);
                     map.put("weight", result[2]);
                     return map;
                 }).toList();
+    }
+
+    @Cacheable(value = "bikeStats", key = "'ageDistanceBoxplot'", condition = "#district == null && #month == null")
+    public List<Map<String, Object>> getAgeDistanceBoxplot(String district, Integer month) {
+        List<Object[]> results = bikeRepository.findAgeDistanceBoxplot(district, month);
+        return results.stream().map(result -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("ageGroup", result[0]);
+            map.put("minDist", result[1]);
+            map.put("q1Dist", result[2]);
+            map.put("medianDist", result[3]);
+            map.put("q3Dist", result[4]);
+            map.put("maxDist", result[5]);
+            map.put("totalUseCount", result[6]);
+            return map;
+        }).toList();
     }
 }
