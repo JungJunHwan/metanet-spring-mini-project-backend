@@ -34,8 +34,9 @@ public interface BikeRepository extends JpaRepository<Bike, Long> {
             nativeQuery = true)
     List<Object[]> findTop10Stations(@Param("district") String district, @Param("month") Integer month, Pageable pageable);
 
-    // 4. 전체 대여소 이용량 (AGG_STATION_STAT 사용)
-    @Query(value = "SELECT STATION_NAME, SUM(TOTAL_USE_COUNT) as totalUsage " +
+    // 4. 전체 대여소 이용량 (AGG_STATION_STAT 사용) + 평균 이동거리
+    @Query(value = "SELECT STATION_NAME, SUM(TOTAL_USE_COUNT) as totalUsage, " +
+            "SUM(AVG_DISTANCE * TOTAL_USE_COUNT) / NULLIF(SUM(TOTAL_USE_COUNT), 0) as avgDistance " +
             "FROM AGG_STATION_STAT " +
             "WHERE (:district IS NULL OR DISTRICT = :district) " +
             "AND (:month IS NULL OR RENT_MONTH = :month) " +
@@ -85,12 +86,30 @@ public interface BikeRepository extends JpaRepository<Bike, Long> {
             nativeQuery = true)
     List<Object[]> findUsageByDistrict();
 
-    // 10. 거리 vs 탄소 절감량 (AGG_DISTANCE_CARBON_STAT 집계 테이블 사용으로 속도 최적화)
-    @Query(value = "SELECT DISTANCE, CARBON_AMOUNT, SUM(TOTAL_USE_COUNT) as weight " +
+    // 10. 이동거리 vs 이용시간 산점도 (AGG_DISTANCE_CARBON_STAT 재설계 테이블 사용)
+    @Query(value = "SELECT DISTANCE, USE_TIME, SUM(TOTAL_USE_COUNT) as weight " +
             "FROM AGG_DISTANCE_CARBON_STAT " +
             "WHERE (:district IS NULL OR DISTRICT = :district) " +
             "AND (:month IS NULL OR RENT_MONTH = :month) " +
-            "GROUP BY DISTANCE, CARBON_AMOUNT",
+            "GROUP BY DISTANCE, USE_TIME",
             nativeQuery = true)
-    List<Object[]> findDistanceAndCarbon(@Param("district") String district, @Param("month") Integer month);
+    List<Object[]> findDistanceTimeScatter(@Param("district") String district, @Param("month") Integer month);
+
+    // 11. 연령대별 이동거리 분포 박스플롯 (AGG_AGE_DISTANCE_STAT 사용)
+    // district/month 필터 없이 조회 시 동일 AGE_GROUP이 여러 행으로 반환되는 문제 방지:
+    // GROUP BY AGE_GROUP 후 가중 평균으로 사분위수 집계
+    @Query(value = "SELECT AGE_GROUP, " +
+            "MIN(MIN_DIST) AS MIN_DIST, " +
+            "SUM(Q1_DIST * TOTAL_USE_COUNT) / NULLIF(SUM(TOTAL_USE_COUNT), 0) AS Q1_DIST, " +
+            "SUM(MEDIAN_DIST * TOTAL_USE_COUNT) / NULLIF(SUM(TOTAL_USE_COUNT), 0) AS MEDIAN_DIST, " +
+            "SUM(Q3_DIST * TOTAL_USE_COUNT) / NULLIF(SUM(TOTAL_USE_COUNT), 0) AS Q3_DIST, " +
+            "MAX(MAX_DIST) AS MAX_DIST, " +
+            "SUM(TOTAL_USE_COUNT) AS TOTAL_USE_COUNT " +
+            "FROM AGG_AGE_DISTANCE_STAT " +
+            "WHERE (:district IS NULL OR DISTRICT = :district) " +
+            "AND (:month IS NULL OR RENT_MONTH = :month) " +
+            "GROUP BY AGE_GROUP " +
+            "ORDER BY AGE_GROUP",
+            nativeQuery = true)
+    List<Object[]> findAgeDistanceBoxplot(@Param("district") String district, @Param("month") Integer month);
 }

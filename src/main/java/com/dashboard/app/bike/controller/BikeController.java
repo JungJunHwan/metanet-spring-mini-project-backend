@@ -80,11 +80,18 @@ public class BikeController {
         return ResponseEntity.ok(ApiResponse.success(bikeService.getUsageByDistrict()));
     }
 
-    @GetMapping("/distance-carbon")
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getDistanceAndCarbon(
+    @GetMapping("/distance-time")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getDistanceTimeScatter(
             @RequestParam(required = false) String district,
             @RequestParam(required = false) Integer month) {
-        List<Map<String, Object>> result = bikeService.getDistanceAndCarbon(district, month);
+        List<Map<String, Object>> result = bikeService.getDistanceTimeScatter(district, month);
         return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+    @GetMapping("/age-distance")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getAgeDistanceBoxplot(
+            @RequestParam(required = false) String district,
+            @RequestParam(required = false) Integer month) {
+        return ResponseEntity.ok(ApiResponse.success(bikeService.getAgeDistanceBoxplot(district, month)));
     }
 }

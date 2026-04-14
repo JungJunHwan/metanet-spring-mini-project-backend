@@ -19,7 +19,11 @@
       "Bash(cmd.exe:*)",
       "Bash(pip show:*)",
       "Bash(pip install:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(findstr /i pdf\")",
+      "Bash(./gradlew compileJava)",
+      "Bash(./gradlew bootRun)",
+      "Bash(sc query:*)"
     ]
   }
 }
